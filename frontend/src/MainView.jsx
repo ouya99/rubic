@@ -839,52 +839,54 @@ const MainView = () => {
     if (!tick.success) setConnected(false);
     setLatestTick(tick.data);
 
-    if (action.includes('transfer') || action.startsWith('qx/order')) {
-      if (action.includes('transfer'))
-        result = await apiCall(`${action}${tick.data + 10}/${actionPassword}`);
+    if (unlocked) {
+      if (action.includes('transfer') || action.startsWith('qx/order')) {
+        if (action.includes('transfer'))
+          result = await apiCall(
+            `${action}${tick.data + 10}/${actionPassword}`
+          );
 
-      if (action.startsWith('qx/order')) {
-        result = await apiCall(
-          `${action.replace('<tick>', tick.data + 10)}/${actionPassword}`
-        );
-        const orders = await apiCall(`qx/orders/1/1000/0`);
-        setQXTransfers(orders.data);
+        if (action.startsWith('qx/order')) {
+          result = await apiCall(
+            `${action.replace('<tick>', tick.data + 10)}/${actionPassword}`
+          );
+          const orders = await apiCall(`qx/orders/1/1000/0`);
+          setQXTransfers(orders.data);
+        }
+        if (
+          result.data === 'Invalid Password' ||
+          result.data === 'Invalid Password!' ||
+          result.data === 'Must Enter A Password!'
+        ) {
+          setShowProgress(false);
+          setInvalidPassword('Invalid Password');
+        } else {
+          setOrderTick(tick.data + 10);
+          setShowProgress(true);
+          setInvalidPassword('');
+        }
+      } else result = await apiCall(`${action}${actionPassword}`);
+      // download special case
+      if (action === '/wallet/download/') {
+        let csvContent = '';
+        if (result.data.split(',').length < 2) {
+          console.log('Invalid Password!');
+          csvContent += 'Invalid Password!';
+        } else {
+          csvContent += result.data;
+        }
+        // Create a temporary link element and trigger download
+        const link = document.createElement('a');
+        link.href = 'data:text/csv;charset=utf-8,' + encodeURI(csvContent);
+        link.download = 'rubic-db-decrypted.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       }
-      if (
-        result.data === 'Invalid Password' ||
-        result.data === 'Invalid Password!' ||
-        result.data === 'Must Enter A Password!'
-      ) {
-        setShowProgress(false);
-        setInvalidPassword('Invalid Password');
-      } else {
-        setOrderTick(tick.data + 10);
-        setShowProgress(true);
-        setInvalidPassword('');
-      }
-    } else result = await apiCall(`${action}${actionPassword}`);
-    // download special case
-    if (action === '/wallet/download/') {
-      let csvContent = '';
-      if (result.data.split(',').length < 2) {
-        console.log('Invalid Password!');
-        csvContent += 'Invalid Password!';
-      } else {
-        csvContent += result.data;
-      }
-      // Create a temporary link element and trigger download
-      const link = document.createElement('a');
-      link.href = 'data:text/csv;charset=utf-8,' + encodeURI(csvContent);
-      link.download = 'rubic-db-decrypted.csv';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
 
-    setPassword('');
-    setAction('');
-
-    if (!unlocked) {
+      setPassword('');
+      setAction('');
+    } else {
       const unlock = await apiCall(
         `wallet/unlock/${actionPassword}/${unlockTimer}`
       );
@@ -894,9 +896,9 @@ const MainView = () => {
     // console.log(result);
     // console.log(result.data);
     if (
-      result.data === 'Invalid Password' ||
-      result.data === 'Invalid Password!' ||
-      result.data === 'Must Enter A Password!'
+      (result && result.data === 'Invalid Password') ||
+      (result && result.data === 'Invalid Password!') ||
+      (result && result.data === 'Must Enter A Password!')
     ) {
       setInvalidPassword('Invalid Password');
     } else {
@@ -937,9 +939,9 @@ const MainView = () => {
             mt: 0, // margin-right: theme.spacing(2)
           }}
           color='primary'
-          onClick={async () => await actionHandler(action, false)}
+          onClick={async () => await actionHandler(action, false)} // only unlock wallet (false = unlocked)
         >
-          CONFIRM
+          UNLOCK
         </Button>
         <Button
           variant='contained'
