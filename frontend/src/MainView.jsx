@@ -883,15 +883,15 @@ const MainView = () => {
         link.click();
         document.body.removeChild(link);
       }
-
-      setPassword('');
-      setAction('');
     } else {
       const unlock = await apiCall(
         `wallet/unlock/${actionPassword}/${unlockTimer}`
       );
       console.log(unlock.data);
     }
+
+    setPassword('');
+    setAction('');
 
     // console.log(result);
     // console.log(result.data);
