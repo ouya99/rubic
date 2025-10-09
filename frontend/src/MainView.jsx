@@ -2546,11 +2546,11 @@ const MainView = () => {
               <Typography variant='h6' sx={{ mb: 1, color: 'error.main' }}>
                 ASK ORDERS
               </Typography>
-              {renderQX(askOrders, 'Ask')}
+              {renderQX(askOrders, 'ASK')}
               <Typography variant='h6' sx={{ mb: 1, color: 'success.main' }}>
                 BID ORDERS
               </Typography>
-              {renderQX(bidOrders, 'Bid')}
+              {renderQX(bidOrders, 'BID')}
             </TabPanel>
             <TabPanel
               sx={{
